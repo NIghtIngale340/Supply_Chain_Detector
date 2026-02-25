@@ -1,0 +1,6 @@
+[
+  "lodash", "react", "express", "axios", "chalk",
+  "commander", "moment", "debug", "uuid", "semver",
+  "webpack", "typescript", "eslint", "next", "vue",
+  "jquery", "underscore", "async", "bluebird", "minimist"
+]

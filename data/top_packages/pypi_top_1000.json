@@ -1,0 +1,6 @@
+[
+  "requests", "numpy", "pandas", "flask", "django",
+  "boto3", "setuptools", "pip", "urllib3", "colorama",
+  "pyyaml", "scipy", "pillow", "cryptography", "jinja2",
+  "click", "sqlalchemy", "beautifulsoup4", "pytest", "wheel"
+]
