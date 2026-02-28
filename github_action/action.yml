@@ -1,0 +1,25 @@
+name: Supply Chain Detector Scan
+description: Scan dependencies against the Supply Chain Detector API and fail on risky scores.
+author: Mark Christian Anub
+
+inputs:
+  api_base_url:
+    description: Base URL for detector API
+    required: false
+    default: http://localhost:8000
+  threshold:
+    description: Fail if any dependency score is at or above this value
+    required: false
+    default: "70"
+  poll_timeout:
+    description: Seconds to wait per dependency job
+    required: false
+    default: "90"
+
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.api_base_url }}
+    - ${{ inputs.threshold }}
+    - ${{ inputs.poll_timeout }}
