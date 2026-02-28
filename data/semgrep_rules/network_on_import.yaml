@@ -1,0 +1,13 @@
+rules:
+  - id: network-on-import
+    message: Outbound HTTP request at module level — runs on import.
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern-either:
+          - pattern: requests.get(...)
+          - pattern: requests.post(...)
+          - pattern: urllib.request.urlopen(...)
+      - pattern-not-inside: |
+          def $FUNC(...):
+              ...

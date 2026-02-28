@@ -1,0 +1,10 @@
+rules:
+  - id: reverse-shell
+    message: Socket + subprocess reverse shell pattern.
+    severity: ERROR
+    languages: [python]
+    pattern-either:
+      - pattern: socket.socket($AF, $TYPE)
+      - pattern: subprocess.Popen(..., stdin=..., stdout=...)
+      - pattern: subprocess.call(..., stdin=..., stdout=...)
+      - pattern: os.dup2(...)

@@ -1,0 +1,20 @@
+rules:
+  - id: setup-py-exec
+    message: >-
+      Dynamic code execution in setup.py — code runs during pip install,
+      a primary supply chain attack vector.
+    severity: ERROR
+    languages:
+      - python
+    pattern-either:
+      - pattern: |
+          exec(compile(...))
+      - pattern: |
+          os.system(...)
+      - pattern: |
+          subprocess.run(...)
+      - pattern: |
+          eval($X)
+    paths:
+      include:
+        - "setup.py"
