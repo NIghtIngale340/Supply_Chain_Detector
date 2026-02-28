@@ -27,6 +27,8 @@ def normalize_records(record: dict) -> dict:
         "version":      record.get("version", "").strip(),
         "source_url":   record.get("source_url") or record.get("source_reference", "").strip(),
         "collected_at": record.get("collected_at", datetime.now().isoformat()),
+        "source":       record.get("source", ""),
+        "source_code":  record.get("source_code", ""),
     }
 
 def normalize_dataset(input_file: str, output_file: str) -> dict:
