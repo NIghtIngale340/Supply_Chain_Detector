@@ -14,16 +14,17 @@ def test_health_endpoint() -> None:
     assert response.json() == {"status": "ok"}
 
 
-@patch("api.routes.analyze.analyze_package_task.delay")
-def test_analyze_endpoint_enqueues_job(mock_delay) -> None:
-    mock_delay.return_value.id = "job-123"
-
+@patch("api.routes.analyze.upsert_scan_job")
+@patch("api.routes.analyze.analyze_package_task.apply_async")
+def test_analyze_endpoint_enqueues_job(mock_apply_async, mock_upsert) -> None:
     response = client.post("/analyze", json={"name": "requests", "registry": "pypi"})
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["job_id"] == "job-123"
+    assert "job_id" in payload
     assert payload["status"] == "queued"
+    mock_apply_async.assert_called_once()
+    mock_upsert.assert_called_once()
 
 
 @patch("api.routes.results.AsyncResult")
