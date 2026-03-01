@@ -15,15 +15,15 @@ def test_health_endpoint() -> None:
 
 
 @patch("api.routes.analyze.upsert_scan_job")
-@patch("api.routes.analyze.analyze_package_task.apply_async")
-def test_analyze_endpoint_enqueues_job(mock_apply_async, mock_upsert) -> None:
+@patch("api.routes.analyze.analyze_package_task")
+def test_analyze_endpoint_enqueues_job(mock_task, mock_upsert) -> None:
     response = client.post("/analyze", json={"name": "requests", "registry": "pypi"})
 
     assert response.status_code == 200
     payload = response.json()
     assert "job_id" in payload
     assert payload["status"] == "queued"
-    mock_apply_async.assert_called_once()
+    mock_task.apply_async.assert_called_once()
     mock_upsert.assert_called_once()
 
 
