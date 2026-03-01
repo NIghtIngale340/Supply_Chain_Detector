@@ -19,14 +19,19 @@ client = TestClient(app)
 class TestFullScanLifecycle:
     """End-to-end lifecycle: enqueue -> poll -> completed result."""
 
-    @patch("api.routes.analyze.analyze_package_task.delay")
-    def test_analyze_returns_job_id(self, mock_delay: MagicMock) -> None:
-        mock_delay.return_value.id = "integ-job-001"
+    @patch("api.routes.analyze.analyze_package_task.apply_async")
+    @patch("api.routes.analyze.uuid.uuid4")
+    def test_analyze_returns_job_id(self, mock_uuid4: MagicMock, mock_apply_async: MagicMock) -> None:
+        mock_uuid4.return_value = "integ-job-001"
         resp = client.post("/analyze", json={"name": "requests", "registry": "pypi"})
         assert resp.status_code == 200
         body = resp.json()
         assert body["job_id"] == "integ-job-001"
         assert body["status"] == "queued"
+        mock_apply_async.assert_called_once_with(
+            args=["requests", "pypi"],
+            task_id="integ-job-001",
+        )
 
     @patch("api.routes.results.AsyncResult")
     def test_results_pending_then_completed(self, mock_ar: MagicMock) -> None:
