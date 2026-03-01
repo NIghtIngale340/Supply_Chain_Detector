@@ -27,8 +27,9 @@ def test_analyze_endpoint_enqueues_job(mock_task, mock_upsert) -> None:
     mock_upsert.assert_called_once()
 
 
+@patch("api.routes.results.get_scan_job", return_value={"status": "queued"})
 @patch("api.routes.results.AsyncResult")
-def test_results_endpoint_pending(mock_async_result) -> None:
+def test_results_endpoint_pending(mock_async_result, mock_get_scan) -> None:
     mock_async_result.return_value.state = "PENDING"
 
     response = client.get("/results/job-123")
@@ -37,8 +38,9 @@ def test_results_endpoint_pending(mock_async_result) -> None:
     assert response.json() == {"job_id": "job-123", "status": "pending", "result": None}
 
 
+@patch("api.routes.results.get_scan_job", return_value={"status": "completed"})
 @patch("api.routes.results.AsyncResult")
-def test_results_endpoint_completed(mock_async_result) -> None:
+def test_results_endpoint_completed(mock_async_result, mock_get_scan) -> None:
     mock_async_result.return_value.state = "SUCCESS"
     mock_async_result.return_value.result = {"final_score": 12}
 
