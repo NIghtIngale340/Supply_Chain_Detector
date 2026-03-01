@@ -40,7 +40,7 @@ def analyze_static_risk(source_code: str, source_path: str | None = None) -> dic
     final_score = sum(component_scores[comp] * _COMPONENT_WEIGHTS[comp] for comp in _COMPONENT_WEIGHTS)
     final_score = round(min(max(final_score, 0), 100))
     if final_score >= _THRESHOLD_HIGH_RISK:
-        decision = "high risk"
+        decision = "high_risk"
     elif final_score >= _THRESHOLD_REVIEW:
         decision = "review"
     else:

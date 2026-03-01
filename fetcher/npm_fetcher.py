@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import requests
 from dotenv import load_dotenv
@@ -33,7 +34,7 @@ def fetch_npm_metadata(package_name: str) -> FetchResult:
     if response.status_code != 200:
         return FetchResult(
             package_name=package_name,
-            registry=base_url,
+            registry="npm",
             status_code=response.status_code,
             metadata={},
         )
@@ -43,6 +44,7 @@ def fetch_npm_metadata(package_name: str) -> FetchResult:
 
     latest_version = data.get("dist-tags", {}).get("latest", "")
     version_info = data.get("versions", {}).get(latest_version, {})
+    time_info = data.get("time", {}) if isinstance(data.get("time"), dict) else {}
 
     repo_raw = data.get("repository", {})
     if isinstance(repo_raw, dict):
@@ -60,18 +62,23 @@ def fetch_npm_metadata(package_name: str) -> FetchResult:
         "name":          data.get("name", ""),
         "version":       latest_version,
         "description":   data.get("description", ""),
+        "summary":       data.get("description", ""),
         "author":        author,
         "license":       data.get("license", ""),
         "repository":    repository,
         "homepage":      data.get("homepage", ""),
         "dependencies":  version_info.get("dependencies", {}),
+        "created_at":    time_info.get("created"),
+        "release_history": [{"version": key, "date": value} for key, value in time_info.items() if key not in {"created", "modified"}],
+        "published_count": len([k for k in time_info if k not in {"created", "modified"}]),
+        "collected_at": datetime.now(timezone.utc).isoformat(),
         "dist_tarball":  version_info.get("dist", {}).get("tarball", ""),
     }
 
     
     return FetchResult(
         package_name=package_name,
-        registry=base_url,
+        registry="npm",
         status_code=response.status_code,
         metadata=metadata,
     )

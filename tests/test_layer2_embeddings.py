@@ -4,9 +4,9 @@ from detector.layer2_embeddings import embedding_analyzer
 
 
 def test_embedding_risk_score_monotonic_bands() -> None:
-    assert embedding_analyzer.embedding_risk_score(1.0) == 0
-    assert 20 <= embedding_analyzer.embedding_risk_score(25.0) <= 60
-    assert embedding_analyzer.embedding_risk_score(100.0) >= 60
+    assert embedding_analyzer.embedding_risk_score(0.5) == 0
+    assert 20 <= embedding_analyzer.embedding_risk_score(1.2) <= 60
+    assert embedding_analyzer.embedding_risk_score(2.0) >= 60
 
 
 def test_analyze_embedding_risk_handles_missing_index(monkeypatch) -> None:
@@ -29,8 +29,8 @@ def test_analyze_embedding_risk_flags_far_neighbors(monkeypatch) -> None:
 
     def _far_neighbors(_embedding, k=5):  # noqa: ARG001
         return [
-            {"distance": 120.0, "index": 0, "name": "pkg-a", "registry": "pypi"},
-            {"distance": 130.0, "index": 1, "name": "pkg-b", "registry": "npm"},
+            {"distance": 2.5, "index": 0, "name": "pkg-a", "registry": "pypi"},
+            {"distance": 3.0, "index": 1, "name": "pkg-b", "registry": "npm"},
         ]
 
     monkeypatch.setattr(embedding_analyzer, "find_nearest", _far_neighbors)

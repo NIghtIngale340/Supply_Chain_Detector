@@ -25,7 +25,7 @@ def test_npm_fetch_success(mock_get):
 
     result = fetch_npm_metadata("lodash")
 
-    assert result.registry == "https://registry.npmjs.org"
+    assert result.registry == "npm"
     assert result.status_code == 200
     assert result.metadata["name"] == "lodash"
 

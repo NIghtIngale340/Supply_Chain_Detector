@@ -1,10 +1,61 @@
 rules:
-  - id: reverse-shell
-    message: Socket + subprocess reverse shell pattern.
+  - id: reverse-shell-socket
+    message: >-
+      Socket combined with subprocess — classic reverse shell pattern used in
+      supply-chain attacks.
     severity: ERROR
     languages: [python]
+    metadata:
+      category: security
+      technology: [python]
+      cwe: ["CWE-506: Embedded Malicious Code"]
     pattern-either:
-      - pattern: socket.socket($AF, $TYPE)
-      - pattern: subprocess.Popen(..., stdin=..., stdout=...)
-      - pattern: subprocess.call(..., stdin=..., stdout=...)
-      - pattern: os.dup2(...)
+      - pattern: |
+          $SOCK = socket.socket(...)
+          ...
+          subprocess.Popen(..., stdin=$SOCK.makefile(...), ...)
+      - pattern: |
+          $SOCK = socket.socket(...)
+          ...
+          subprocess.call(..., stdin=$SOCK.makefile(...), ...)
+      - pattern: |
+          $SOCK = socket.socket(...)
+          ...
+          os.dup2($SOCK.fileno(), ...)
+
+  - id: reverse-shell-os-system
+    message: >-
+      os.system() call with remote host indicators — possible reverse shell.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: ["CWE-78: OS Command Injection"]
+    pattern-either:
+      - pattern: os.system("bash -i >& /dev/tcp/...")
+      - pattern: os.system("nc ...")
+      - pattern: os.system("ncat ...")
+      - pattern: os.system("sh -i ...")
+
+  - id: reverse-shell-b64-exec
+    message: >-
+      Base64-decoded payload passed to exec or eval — obfuscated code execution,
+      commonly used to hide reverse shells.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: ["CWE-506: Embedded Malicious Code"]
+    pattern-either:
+      - pattern: exec(base64.b64decode(...))
+      - pattern: eval(base64.b64decode(...))
+      - pattern: exec(base64.b64decode(...).decode(...))
+      - pattern: eval(base64.b64decode(...).decode(...))
+      - pattern: |
+          $PAYLOAD = base64.b64decode(...)
+          ...
+          exec($PAYLOAD)
+      - pattern: |
+          $PAYLOAD = base64.b64decode(...)
+          ...
+          eval($PAYLOAD)

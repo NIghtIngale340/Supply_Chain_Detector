@@ -30,11 +30,22 @@ def parse_llm_audit_response(raw_text: str) -> dict[str, Any]:
     try:
         parsed_json = json.loads(text)
 
+        raw_risk_score = int(parsed_json.get("risk_score", 0))
+        risk_score = max(0, min(100, raw_risk_score))
+        risk_category = str(parsed_json.get("risk_category", "unknown")).lower()
+        if risk_category not in {"benign", "suspicious", "malicious"}:
+            risk_category = "unknown"
+
+        evidence = parsed_json.get("evidence", [])
+        if not isinstance(evidence, list):
+            evidence = [str(evidence)]
+        evidence = [str(item) for item in evidence][:20]
+
         strict_response = {
-            "risk_score": int(parsed_json.get("risk_score", 0)),
-            "risk_category": str(parsed_json.get("risk_category", "unknown")),
+            "risk_score": risk_score,
+            "risk_category": risk_category,
             "summary": str(parsed_json.get("summary", "")),
-            "evidence": list(parsed_json.get("evidence", [])),
+            "evidence": evidence,
         }
         return strict_response
 

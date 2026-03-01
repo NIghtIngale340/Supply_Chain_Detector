@@ -1,3 +1,4 @@
+import sys
 import tarfile
 import zipfile
 from pathlib import Path
@@ -10,6 +11,17 @@ def _is_safe_path(member_path: str, target_dir: Path) -> bool:
         return True
     except ValueError:
         return False
+
+
+def _safe_tar_extractall(tar: tarfile.TarFile, path: Path) -> None:
+    """Extract tar with filter='data' on Python >= 3.12, manual check otherwise."""
+    for member in tar.getmembers():
+        if not _is_safe_path(member.name, path):
+            raise ValueError(f"Unsafe path in archive: {member.name}")
+    if sys.version_info >= (3, 12):
+        tar.extractall(path=path, filter="data")
+    else:
+        tar.extractall(path=path)
 
 
 def extract_archive(archive_path: Path, output_dir: Path) -> Path:
@@ -26,12 +38,10 @@ def extract_archive(archive_path: Path, output_dir: Path) -> Path:
     suffix = archive_path.suffix.lower()
     suffixes = [s.lower() for s in archive_path.suffixes]
 
-    if suffix in (".tgz",) or suffixes == [".tar", ".gz"]:
+    is_tar_gz = suffixes[-2:] == [".tar", ".gz"]
+    if suffix in (".tgz",) or is_tar_gz:
         with tarfile.open(archive_path, "r:gz") as tar:
-            for member in tar.getmembers():
-                if not _is_safe_path(member.name, extract_dir):
-                    raise ValueError(f"Unsafe path in archive: {member.name}")
-            tar.extractall(path=extract_dir)
+            _safe_tar_extractall(tar, extract_dir)
 
     elif suffix in (".zip", ".whl"):
         with zipfile.ZipFile(archive_path, "r") as zf:

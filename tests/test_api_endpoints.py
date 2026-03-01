@@ -14,7 +14,7 @@ def test_health_endpoint() -> None:
     assert response.json() == {"status": "ok"}
 
 
-@patch("api.main.analyze_package_task.delay")
+@patch("api.routes.analyze.analyze_package_task.delay")
 def test_analyze_endpoint_enqueues_job(mock_delay) -> None:
     mock_delay.return_value.id = "job-123"
 
@@ -26,7 +26,7 @@ def test_analyze_endpoint_enqueues_job(mock_delay) -> None:
     assert payload["status"] == "queued"
 
 
-@patch("api.main.AsyncResult")
+@patch("api.routes.results.AsyncResult")
 def test_results_endpoint_pending(mock_async_result) -> None:
     mock_async_result.return_value.state = "PENDING"
 
@@ -36,7 +36,7 @@ def test_results_endpoint_pending(mock_async_result) -> None:
     assert response.json() == {"job_id": "job-123", "status": "pending", "result": None}
 
 
-@patch("api.main.AsyncResult")
+@patch("api.routes.results.AsyncResult")
 def test_results_endpoint_completed(mock_async_result) -> None:
     mock_async_result.return_value.state = "SUCCESS"
     mock_async_result.return_value.result = {"final_score": 12}

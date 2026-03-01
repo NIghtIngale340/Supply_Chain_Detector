@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -29,7 +29,7 @@ def build_benign_sample() -> None:
 
     os.makedirs(output_dir, exist_ok=True)
 
-    collected_at = datetime.utcnow().isoformat()
+    collected_at = datetime.now(timezone.utc).isoformat()
 
     records = []
     seen = set()

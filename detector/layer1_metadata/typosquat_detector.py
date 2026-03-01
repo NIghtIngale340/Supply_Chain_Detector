@@ -34,11 +34,20 @@ _TOP_PACKAGE_FILES = {
 def _load_top_packages(registry: str) -> list[str]:
     file_path = _TOP_PACKAGE_FILES.get(registry)
     if file_path is None:
-        return ["No package list available for registry"]
+        return []
     if not file_path.exists():
-        return ["File path doesnt  exist"]
+        return []
     with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        payload = json.load(f)
+    if not isinstance(payload, list):
+        return []
+    result: list[str] = []
+    for item in payload:
+        if isinstance(item, str):
+            result.append(item)
+        elif isinstance(item, dict) and "name" in item:
+            result.append(item["name"])
+    return result
 
 
 def analyze_typosquat(package_name: str, registry: str) -> dict:

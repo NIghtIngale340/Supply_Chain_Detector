@@ -33,3 +33,18 @@ def test_tar_gz_extraction(tmp_path):
 
     assert result.exists()        
     assert (result / "hello.txt").exists() 
+
+
+def test_tar_gz_extraction_with_dotted_filename(tmp_path):
+    archive_path = tmp_path / "requests-2.32.5.tar.gz"
+    inner_file = tmp_path / "main.py"
+    inner_file.write_text("print('ok')")
+
+    with tarfile.open(archive_path, "w:gz") as tar:
+        tar.add(inner_file, arcname="main.py")
+
+    output_dir = tmp_path / "extracted"
+    result = extract_archive(archive_path, output_dir)
+
+    assert result.exists()
+    assert (result / "main.py").exists()

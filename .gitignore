@@ -9,14 +9,40 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 .env.*
+!.env.example
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-docs/
 supply_chain_detector_blueprint.txt
 *.pem
 *.key
 *.p12
 *.pfx
 *.crt
+scd.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Node (UI deps if any)
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

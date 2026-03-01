@@ -50,7 +50,7 @@ def _embed_records(records: list[dict]) -> tuple[np.ndarray, list[dict]]:
                 }
             )
         except Exception as e:
-            print(f"  ⚠ Skipping record {i}: {e}")
+            print(f"  Skipping record {i}: {e}")
             skipped += 1
     print(f"Embedded {len(embeddings)} records, skipped {skipped}")
     if not embeddings:
@@ -72,8 +72,8 @@ def _save_index(index: faiss.IndexFlatL2, id_mapping: list[dict]) -> None:
     faiss.write_index(index, str(INDEX_FILE))
     with open(MAPPING_FILE, "w", encoding="utf-8") as f:
         json.dump(id_mapping, f, indent=2)
-    print(f"Saved index → {INDEX_FILE}")
-    print(f"Saved mapping → {MAPPING_FILE}")
+    print(f"Saved index -> {INDEX_FILE}")
+    print(f"Saved mapping -> {MAPPING_FILE}")
 
 
 def build() -> None:

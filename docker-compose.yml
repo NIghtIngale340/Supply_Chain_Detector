@@ -2,37 +2,62 @@ services:
   api:
     build:
       context: .
-      dockerfile: api/Dockerfile
-    command: python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+      dockerfile: Dockerfile.api
     ports:
       - "8000:8000"
     environment:
+      RUN_MIGRATIONS: "1"
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/scd}
+      RUNNING_IN_DOCKER: "1"
+      LLM_PROVIDER: ${LLM_PROVIDER:-stub}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      NVIDIA_BASE_URL: ${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      NVIDIA_MODEL: ${NVIDIA_MODEL:-meta/llama-3.1-8b-instruct}
+      LLM_TRIGGER_THRESHOLD: ${LLM_TRIGGER_THRESHOLD:-20}
+      RATE_LIMITER_BACKEND: ${RATE_LIMITER_BACKEND:-redis}
     depends_on:
       redis:
         condition: service_healthy
       db:
         condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
 
   worker:
     build:
       context: .
-      dockerfile: api/Dockerfile
-    command: python -m celery -A workers.worker.celery_app worker --loglevel=info -Q celery
+      dockerfile: Dockerfile.worker
+    mem_limit: 4g
+    memswap_limit: 4g
     environment:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/scd}
+      RUNNING_IN_DOCKER: "1"
+      LLM_PROVIDER: ${LLM_PROVIDER:-stub}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      NVIDIA_BASE_URL: ${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      NVIDIA_MODEL: ${NVIDIA_MODEL:-meta/llama-3.1-8b-instruct}
+      LLM_TRIGGER_THRESHOLD: ${LLM_TRIGGER_THRESHOLD:-20}
     depends_on:
       redis:
         condition: service_healthy
       db:
         condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: postgres:17-alpine
+    pull_policy: missing
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-scd}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -42,24 +67,28 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-scd}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-scd}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7
+    pull_policy: missing
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 8
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:11.5.2
-    profiles: ["observability"]
+    pull_policy: missing
+    profiles: [ "observability" ]
     ports:
       - "3000:3000"
     environment:
@@ -69,6 +98,27 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - db
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["python", "-m", "streamlit", "run", "ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    environment:
+      SCD_API_BASE_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8501/_stcore/health" ]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
 
 volumes:
   postgres_data:

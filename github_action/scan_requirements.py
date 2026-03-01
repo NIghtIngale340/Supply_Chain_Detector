@@ -29,13 +29,17 @@ def _parse_package_json(path: pathlib.Path) -> list[str]:
 def discover_dependencies(root: pathlib.Path) -> dict[str, list[str]]:
     results: dict[str, list[str]] = {"pypi": [], "npm": []}
 
-    requirements_path = root / "requirements.txt"
-    if requirements_path.exists():
-        results["pypi"] = sorted(set(_parse_requirements(requirements_path)))
+    requirement_files = sorted(root.rglob("requirements.txt"))
+    pypi_packages: set[str] = set()
+    for req_file in requirement_files:
+        pypi_packages.update(_parse_requirements(req_file))
+    results["pypi"] = sorted(pypi_packages)
 
-    package_json_path = root / "package.json"
-    if package_json_path.exists():
-        results["npm"] = sorted(set(_parse_package_json(package_json_path)))
+    package_json_files = sorted(root.rglob("package.json"))
+    npm_packages: set[str] = set()
+    for package_json in package_json_files:
+        npm_packages.update(_parse_package_json(package_json))
+    results["npm"] = sorted(npm_packages)
 
     return results
 

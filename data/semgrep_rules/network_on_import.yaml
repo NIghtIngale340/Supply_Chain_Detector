@@ -1,13 +1,44 @@
 rules:
   - id: network-on-import
-    message: Outbound HTTP request at module level — runs on import.
+    message: >-
+      Outbound network request at module level — executes on import,
+      a common supply-chain attack pattern for data exfiltration.
     severity: ERROR
     languages: [python]
+    metadata:
+      category: security
+      technology: [python]
+      cwe: ["CWE-506: Embedded Malicious Code"]
     patterns:
       - pattern-either:
           - pattern: requests.get(...)
           - pattern: requests.post(...)
+          - pattern: requests.put(...)
           - pattern: urllib.request.urlopen(...)
+          - pattern: urllib.request.urlretrieve(...)
+          - pattern: httpx.get(...)
+          - pattern: httpx.post(...)
+          - pattern: |
+              $SOCK = socket.socket(...)
+              ...
+              $SOCK.connect(...)
+      - pattern-not-inside: |
+          def $FUNC(...):
+              ...
+      - pattern-not-inside: |
+          class $CLS(...):
+              ...
+
+  - id: socket-module-level
+    message: >-
+      Socket connection at module level — runs during import.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: ["CWE-506: Embedded Malicious Code"]
+    patterns:
+      - pattern: socket.socket(...)
       - pattern-not-inside: |
           def $FUNC(...):
               ...

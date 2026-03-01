@@ -4,17 +4,40 @@ rules:
       Dynamic code execution in setup.py — code runs during pip install,
       a primary supply chain attack vector.
     severity: ERROR
-    languages:
-      - python
+    languages: [python]
+    metadata:
+      category: security
+      technology: [python]
+      cwe: ["CWE-506: Embedded Malicious Code"]
     pattern-either:
-      - pattern: |
-          exec(compile(...))
-      - pattern: |
-          os.system(...)
-      - pattern: |
-          subprocess.run(...)
-      - pattern: |
-          eval($X)
+      - pattern: exec(compile(...))
+      - pattern: exec(...)
+      - pattern: eval(...)
+      - pattern: os.system(...)
+      - pattern: subprocess.run(...)
+      - pattern: subprocess.call(...)
+      - pattern: subprocess.Popen(...)
+      - pattern: __import__(...)
     paths:
       include:
         - "setup.py"
+        - "**/setup.py"
+
+  - id: setup-cfg-dynamic-exec
+    message: >-
+      Dynamic import or code generation in a setup configuration file.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: security
+      cwe: ["CWE-506: Embedded Malicious Code"]
+    pattern-either:
+      - pattern: compile(...)
+      - pattern: |
+          $CODE = "..."
+          ...
+          exec($CODE)
+    paths:
+      include:
+        - "setup.py"
+        - "**/setup.py"

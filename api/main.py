@@ -1,32 +1,28 @@
-from celery.result import AsyncResult
-from fastapi import FastAPI, HTTPException
+import logging
+from contextlib import asynccontextmanager
 
-from api.schemas import AnalyzeQueuedResponse, AnalyzeRequest, ResultResponse
-from api.tasks import analyze_package_task
+from fastapi import FastAPI
 
-
-app = FastAPI(title="Supply Chain Detector API", version="0.1.0")
-
-
-@app.get("/health")
-def health() -> dict:
-    return {"status": "ok"}
+from api.middleware.rate_limiter import RateLimiterMiddleware
+from api.routes import analyze_router, health_router, results_router
+from storage import init_database
 
 
-@app.post("/analyze", response_model=AnalyzeQueuedResponse)
-def analyze(payload: AnalyzeRequest) -> AnalyzeQueuedResponse:
-    job = analyze_package_task.delay(payload.name.strip().lower(), payload.registry)
-    return AnalyzeQueuedResponse(job_id=job.id, status="queued")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger(__name__)
 
 
-@app.get("/results/{job_id}", response_model=ResultResponse)
-def get_results(job_id: str) -> ResultResponse:
-    result = AsyncResult(job_id)
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    init_database()
+    logger.info("Database initialized")
+    yield
 
-    if result.state in {"PENDING", "RECEIVED", "STARTED", "RETRY"}:
-        return ResultResponse(job_id=job_id, status="pending")
 
-    if result.state == "FAILURE":
-        raise HTTPException(status_code=500, detail=str(result.result))
+app = FastAPI(title="Supply Chain Detector API", version="0.1.0", lifespan=lifespan)
 
-    return ResultResponse(job_id=job_id, status="completed", result=result.result)
+app.add_middleware(RateLimiterMiddleware, max_requests=120, window_seconds=60)
+app.include_router(health_router)
+app.include_router(analyze_router)
+app.include_router(results_router)
+

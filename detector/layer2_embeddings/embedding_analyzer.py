@@ -1,7 +1,10 @@
 from detector.layer2_embeddings.code_embedder import encode as embed_code
 from detector.layer2_embeddings.cluster_manager import find_nearest
 
-DISTANCE_THRESHOLDS = {"safe": 10.0, "moderate": 50.0}
+# Thresholds calibrated to real FAISS index L2 distances
+# Benign code typically has L2 distance 0.5-1.2 from nearest benign cluster
+# Suspicious code: 1.2-1.8, Malicious/novel code: >1.8
+DISTANCE_THRESHOLDS = {"safe": 0.8, "moderate": 1.6}
 
 
 def embedding_risk_score(distance):
@@ -13,7 +16,7 @@ def embedding_risk_score(distance):
         ratio = (distance - safe) / (moderate - safe)
         return int(20 + ratio * 40)
     else:
-        return min(95, int(60 + distance * 5))
+        return min(95, int(60 + (distance - DISTANCE_THRESHOLDS["moderate"]) * 25))
 
 
 def analyze_embedding_risk(source_code):

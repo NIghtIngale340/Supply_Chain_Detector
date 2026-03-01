@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1.7
+# ---------- Stage 1: builder ----------
+FROM python:3.11.11-slim-bookworm AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /build
+
+COPY api/requirements.txt /tmp/requirements.txt
+RUN pip install --prefix=/install -r /tmp/requirements.txt
+
+# ---------- Stage 2: runtime ----------
+FROM python:3.11.11-slim-bookworm AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install semgrep + runtime deps
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && pip install --no-cache-dir semgrep \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r app && useradd -r -g app -d /app -s /sbin/nologin app
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
+
+# Pre-download sentence-transformers model so first scan doesn't stall
+ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
+RUN mkdir -p /app/.cache/sentence_transformers \
+    && python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
+# Copy application code
+COPY api/          /app/api/
+COPY detector/     /app/detector/
+COPY fetcher/      /app/fetcher/
+COPY workers/      /app/workers/
+COPY storage/      /app/storage/
+COPY ml/           /app/ml/
+COPY data/semgrep_rules/   /app/data/semgrep_rules/
+COPY data/top_packages/    /app/data/top_packages/
+COPY data/processed/       /app/data/processed/
+
+# Alembic migration support + entrypoint
+COPY alembic.ini           /app/alembic.ini
+COPY docker-entrypoint.sh  /app/docker-entrypoint.sh
+
+RUN chmod +x /app/docker-entrypoint.sh \
+    && chown -R app:app /app
+USER app
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import os; from celery import Celery; c=Celery(broker=os.environ.get('CELERY_BROKER_URL','redis://redis:6379/0')); c.control.ping(timeout=2)" || exit 1
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["python", "-m", "celery", "-A", "workers.worker.celery_app", "worker", "--loglevel=info", "-Q", "celery"]

@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "AI-powered software supply chain attack detector"
 authors = ["Mark Christian Anub"]
 readme = "README.md"
-packages = [{ include = "fetcher" }]
+packages = [
+	{ include = "fetcher" },
+	{ include = "api" },
+	{ include = "detector" },
+	{ include = "storage" },
+	{ include = "workers" },
+	{ include = "ml" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -21,6 +28,14 @@ uvicorn = "^0.34.0"
 celery = "^5.4.0"
 redis = "^5.2.0"
 streamlit = "^1.43.0"
+sqlalchemy = "^2.0.39"
+psycopg = {version = "^3.2.9", extras = ["binary"]}
+xgboost = "^2.1.4"
+scikit-learn = "^1.6.1"
+alembic = "^1.13.0"
+seaborn = "^0.13"
+umap-learn = "^0.5"
+scipy = "^1.14"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"

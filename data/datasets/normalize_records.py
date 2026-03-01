@@ -63,7 +63,7 @@ def normalize_dataset(input_file: str, output_file: str) -> dict:
     }
 
     print(f"  {stats['valid_count']}/{stats['input_count']} valid, "
-          f"{stats['quarantined_count']} quarantined → {output_file}")
+          f"{stats['quarantined_count']} quarantined -> {output_file}")
     return stats
 
 

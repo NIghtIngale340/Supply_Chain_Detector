@@ -1,0 +1,4 @@
+# Ensure shell scripts always have Unix line endings in containers
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+github_action/entrypoint.sh text eol=lf

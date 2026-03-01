@@ -1,0 +1,53 @@
+# Version control
+.git
+.gitignore
+
+# Python caches
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.eggs
+dist
+build
+
+# Virtual environments
+.venv
+venv
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test and lint caches
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# Notebooks (large, not needed in runtime)
+notebooks/
+
+# Documentation source (not needed in image)
+docs/
+
+# Raw data (not needed at runtime)
+data/raw/
+
+# Exclude training datasets but keep model artifacts
+data/processed/benign_*.json
+data/processed/malicious_*.json
+data/processed/backstabbers_seed.json
+data/processed/splits/
+
+# Misc
+*.md
+!README.md
+.env
+.env.*
+*.log
+.python-version
+supply_chain_detector_blueprint.txt
