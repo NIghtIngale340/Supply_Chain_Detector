@@ -6,7 +6,6 @@ Reads DATABASE_URL from environment (same as the app) and uses the shared
 
 from __future__ import annotations
 
-import os
 import sys
 from logging.config import fileConfig
 from pathlib import Path

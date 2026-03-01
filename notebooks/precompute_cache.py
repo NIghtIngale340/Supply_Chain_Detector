@@ -32,9 +32,9 @@ SPLITS_DIR = DATA_DIR / "splits"
 CACHE_DIR = DATA_DIR / "notebook_cache"
 CACHE_DIR.mkdir(exist_ok=True)
 
-from detector.layer1_metadata.metadata_analyzer import analyze_metadata_risk
-from detector.layer3_static.static_analyzer import analyze_static_risk
-from detector.classifier import DEFAULT_FEATURE_NAMES
+from detector.layer1_metadata.metadata_analyzer import analyze_metadata_risk  # noqa: E402
+from detector.layer3_static.static_analyzer import analyze_static_risk  # noqa: E402
+from detector.classifier import DEFAULT_FEATURE_NAMES  # noqa: E402
 
 FEATURE_NAMES = list(DEFAULT_FEATURE_NAMES)
 
@@ -127,7 +127,7 @@ def precompute_embeddings():
     with open(DATA_DIR / "malicious_normalized.json", "r", encoding="utf-8") as f:
         malicious_data = json.load(f)
 
-    print(f"  Loading sentence-transformers model (this takes ~30s)...")
+    print("  Loading sentence-transformers model (this takes ~30s)...")
     t0 = time.time()
     from detector.layer2_embeddings.code_embedder import encode as embed_code
     print(f"  Model loaded in {time.time()-t0:.1f}s")
@@ -176,7 +176,7 @@ def precompute_embeddings():
         all_names=all_names,
         tsne_coords=tsne_coords,
     )
-    print(f"  Saved embeddings.npz\n")
+    print("  Saved embeddings.npz\n")
 
 
 if __name__ == "__main__":

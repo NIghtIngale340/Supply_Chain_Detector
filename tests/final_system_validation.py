@@ -313,7 +313,7 @@ def test_layer4_llm():
     r = audit_code_with_llm("print('hello')", prior_layer_score=10, trigger_threshold=40)
     assert r["llm_triggered"] is False
     assert r["risk_score"] == 0
-    ok(f"Below threshold (10<40): LLM NOT triggered, score=0")
+    ok("Below threshold (10<40): LLM NOT triggered, score=0")
 
     r = audit_code_with_llm("exec(eval('danger'))", prior_layer_score=60, trigger_threshold=40)
     assert r["llm_triggered"] is True
@@ -350,7 +350,6 @@ def test_layer4_llm():
 def test_layer5_graph():
     section("LAYER 5: DEPENDENCY GRAPH")
 
-    import networkx as nx
     from detector.layer5_graph.graph_builder import build_dependency_graph
     from detector.layer5_graph.graph_analyzer import propagate_risk
     from detector.layer5_graph.blast_radius import calculate_blast_radius
@@ -428,7 +427,7 @@ def test_ml_model():
     if meta_path.exists():
         with open(meta_path) as f:
             meta = json.load(f)
-        print(f"\n  Training info:")
+        print("\n  Training info:")
         print(f"    Training rows:   {meta.get('training_rows', '?')}")
         print(f"    Validation rows: {meta.get('validation_rows', '?')}")
         print(f"    Test rows:       {meta.get('test_rows', '?')}")
@@ -436,14 +435,14 @@ def test_ml_model():
         print(f"    Malicious train: {meta.get('malicious_train_rows', '?')}")
         print(f"    Scale pos weight: {meta.get('scale_pos_weight', '?')}")
 
-        print(f"\n  Validation Metrics:")
+        print("\n  Validation Metrics:")
         val = meta.get("val_metrics", {})
         print(f"    Precision: {val.get('precision', '?'):.4f}")
         print(f"    Recall:    {val.get('recall', '?'):.4f}")
         print(f"    F1:        {val.get('f1', '?'):.4f}")
         print(f"    ROC AUC:   {val.get('roc_auc', '?'):.4f}")
 
-        print(f"\n  Test Metrics:")
+        print("\n  Test Metrics:")
         test = meta.get("test_metrics", {})
         print(f"    Precision: {test.get('precision', '?'):.4f}")
         print(f"    Recall:    {test.get('recall', '?'):.4f}")
@@ -824,14 +823,14 @@ def print_final_report():
     for item in RESULTS["works_perfectly"]:
         print(f"    - {item}")
 
-    print(f"\n  WHAT NEEDS IMPROVEMENT:")
+    print("\n  WHAT NEEDS IMPROVEMENT:")
     if RESULTS["needs_improvement"]:
         for item in RESULTS["needs_improvement"]:
             print(f"    - {item}")
     else:
         print("    (none)")
 
-    print(f"\n  WHAT IS BROKEN:")
+    print("\n  WHAT IS BROKEN:")
     if RESULTS["broken"]:
         for item in RESULTS["broken"]:
             print(f"    - {item}")

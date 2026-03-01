@@ -9,9 +9,7 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import sys
-import os
 from pathlib import Path
 
 PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
@@ -70,7 +68,7 @@ def request(method, url, **kwargs):
     return session.request(method=method, url=url, **kwargs)
 '''
 
-    source_context = {
+    {
         "files": {"requests/api.py": source_code},
         "total_files": 1,
         "total_lines": len(source_code.strip().splitlines()),
@@ -151,7 +149,7 @@ def setup():
 setup()
 '''
 
-    source_context = {
+    {
         "files": {"setup.py": source_code},
         "total_files": 1,
         "total_lines": len(source_code.strip().splitlines()),
@@ -216,11 +214,6 @@ def test_typosquat():
     }
 
     source_code = "# placeholder package\nprint('hello')\n"
-    source_context = {
-        "files": {"setup.py": source_code},
-        "total_files": 1,
-        "total_lines": 2,
-    }
 
     print("  Submitting for analysis...")
     result = orchestrate_analysis(

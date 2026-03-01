@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -166,7 +165,7 @@ def _generate_benign(output_dir: Path, force: bool) -> list[dict]:
     """Generate synthetic benign dataset without network access."""
     output_file = output_dir / "benign_sample.json"
     if output_file.exists() and not force:
-        print(f"  benign_sample.json already exists, skipping")
+        print("  benign_sample.json already exists, skipping")
         with open(output_file, "r", encoding="utf-8") as f:
             return json.load(f)
 

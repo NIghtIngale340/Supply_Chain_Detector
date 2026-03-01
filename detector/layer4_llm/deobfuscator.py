@@ -1,6 +1,6 @@
 import re
 import base64
-from typing import Optional, Any
+from typing import Any
 
 def _safe_b64decode(b64_string: str) -> str | None:
     try:
